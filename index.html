@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Datepickers SPA - Updated Icons</title>
+    <style>
+        :root { --blue: #0052cc; --light-blue: #deebff; --border: #dfe1e6; --text: #172b4d; --gray: #5e6c84; --bg-tab: #fafbfc; }
+        body { font-family: -apple-system, sans-serif; background: #f4f5f7; margin: 0; padding: 0; }
+        nav { background: white; padding: 0 40px; border-bottom: 1px solid var(--border); display: flex; gap: 30px; }
+        .nav-link { padding: 20px 0; cursor: pointer; color: var(--gray); font-weight: 500; border-bottom: 3px solid transparent; }
+        .nav-link.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .page { display: none; padding: 40px; justify-content: center; }
+        .page.active { display: flex; }
+        .datepicker-container { position: relative; width: 310px; }
+        .select-field { background: white; border: 1px solid var(--border); border-radius: 4px; padding: 10px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .current-val { font-weight: 500; color: var(--text); font-size: 13px; min-height: 1.2em; }
+        .dropdown { position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: white; border-radius: 8px; display: none; z-index: 1000; box-shadow: 0 12px 24px rgba(0,0,0,0.15); border: 1px solid var(--border); overflow: hidden; }
+        .dropdown.show { display: block; }
+        .tabs-header { display: flex; background: var(--bg-tab); border-bottom: 1px solid var(--border); }
+        .tab-item { flex: 1; padding: 10px 5px; text-align: center; cursor: pointer; font-size: 11px; color: var(--gray); border-bottom: 2px solid transparent; }
+        .tab-item b { display: block; font-size: 14px; color: var(--text); margin-top: 2px; }
+        .tab-item.active { border-bottom-color: var(--blue); background: white; }
+        .tab-item.active b { color: var(--blue); }
+        .pane { height: 330px; overflow-y: auto; padding: 10px; display: none; }
+        .pane.active { display: block; }
+        .grid { display: grid; gap: 4px; }
+        .cell { padding: 8px 2px; text-align: center; cursor: pointer; border-radius: 4px; font-size: 13px; color: var(--text); }
+        .cell:hover:not(.disabled) { background: var(--light-blue); }
+        .cell.selected { background: var(--blue) !important; color: white !important; border-radius: 50%; }
+        .cell.disabled { color: #ccc !important; pointer-events: none; opacity: 0.5; }
+        .cell.in-range { background: var(--light-blue); border-radius: 0; }
+        .year-title { text-align: center; font-size: 12px; color: var(--gray); margin: 15px 0 5px; font-weight: bold; border-top: 1px solid #eee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-link active" onclick="showPage('p1-page', this)">Дата рождения</div>
+    <div class="nav-link" onclick="showPage('p2-page', this)">Дата операции</div>
+    <div class="nav-link" onclick="showPage('p3-page', this)">Период ставки</div>
+</nav>
+
+<div id="p1-page" class="page active">
+    <div class="datepicker-container">
+        <div class="select-field" onclick="togglePicker('p1-drop', event)">
+            <div><div style="color:var(--gray); font-size:11px">Дата рождения</div><div class="current-val" id="p1-display">-- . -- . ----</div></div>
+            <span style="color:var(--blue)">📅</span>
+        </div>
+        <div class="dropdown" id="p1-drop" onclick="event.stopPropagation()">
+            <div class="tabs-header">
+                <div class="tab-item active" id="p1-tbtn-d" onclick="tabP1('d', this)">Число<b id="p1-t-d">--</b></div>
+                <div class="tab-item" id="p1-tbtn-m" onclick="tabP1('m', this)">Месяц<b id="p1-t-m">--</b></div>
+                <div class="tab-item" id="p1-tbtn-y" onclick="tabP1('y', this)">Год<b id="p1-t-y">----</b></div>
+            </div>
+            <div class="pane active" id="p1-pane-d"><div class="grid" style="grid-template-columns: repeat(7, 1fr)" id="p1-grid-d"></div></div>
+            <div class="pane" id="p1-pane-m"><div class="grid" style="grid-template-columns: repeat(3, 1fr)" id="p1-grid-m"></div></div>
+            <div class="pane" id="p1-pane-y"><div class="grid" style="grid-template-columns: repeat(3, 1fr)" id="p1-grid-y"></div></div>
+        </div>
+    </div>
+</div>
+
+<div id="p2-page" class="page">
+    <div class="datepicker-container">
+        <div class="select-field" onclick="togglePicker('p2-drop', event)">
+            <div><div style="color:var(--gray); font-size:11px">Дата операции</div><div class="current-val" id="p2-display">08 . 03 . 2026</div></div>
+            <span style="color:var(--blue)">📅</span>
+        </div>
+        <div class="dropdown" id="p2-drop" onclick="event.stopPropagation()">
+            <div class="tabs-header">
+                <div class="tab-item active" id="p2-tbtn-d" onclick="tabP2('d', this)">Число<b id="p2-t-d">08</b></div>
+                <div class="tab-item" id="p2-tbtn-my" style="display:flex; align-items:center; justify-content:center" onclick="tabP2('my', this)">
+                    <span style="padding:0 10px; cursor:pointer" onclick="moveP2(-1, event)">‹</span>
+                    <div style="min-width: 80px">Месяц.Год<b id="p2-t-my">03.2026</b></div>
+                    <span style="padding:0 10px; cursor:pointer" onclick="moveP2(1, event)">›</span>
+                </div>
+            </div>
+            <div class="pane active" id="p2-pane-d"><div class="grid" style="grid-template-columns: repeat(7, 1fr)" id="p2-grid-d"></div></div>
+            <div class="pane" id="p2-pane-my"><div class="grid" style="grid-template-columns: repeat(3, 1fr)" id="p2-grid-m"></div></div>
+        </div>
+    </div>
+</div>
+
+<div id="p3-page" class="page">
+    <div class="datepicker-container">
+        <div class="select-field" onclick="togglePicker('p3-drop', event)">
+            <div><div style="color:var(--gray); font-size:11px">Период ставки</div><div class="current-val" id="p3-display">Выбрать период</div></div>
+            <span style="color:var(--blue)">📅</span>
+        </div>
+        <div class="dropdown" id="p3-drop" onclick="event.stopPropagation()">
+            <div class="tabs-header">
+                <div class="tab-item active" id="p3-btn-s" onclick="switchP3('start')">Начало<b id="p3-txt-s">--.--.----</b></div>
+                <div class="tab-item" id="p3-btn-e" onclick="switchP3('end')">Конец<b id="p3-txt-e">--.--.----</b></div>
+            </div>
+            <div class="pane active" id="p3-pane-p"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const months = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    const monthsShort = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+    const NOW = new Date(2026, 2, 8);
+    const MIN_DATE = new Date(2025, 2, 8);
+
+    function showPage(pId, el) {
+        document.querySelectorAll('.page, .nav-link').forEach(x => x.classList.remove('active'));
+        document.getElementById(pId).classList.add('active');
+        el.classList.add('active');
+        closeAll();
+    }
+
+    function closeAll() { document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show')); }
+    document.addEventListener('click', closeAll);
+
+    function togglePicker(id, e) {
+        e.stopPropagation();
+        const el = document.getElementById(id);
+        const isShow = el.classList.contains('show');
+        closeAll();
+        if (!isShow) el.classList.add('show');
+        if (id === 'p2-drop') renderP2();
+        if (id === 'p3-drop') renderP3();
+    }
+
+    // --- PICKER 1 ---
+    let s1 = {d:null, m:null, y:null};
+    function tabP1(t, el) { 
+        document.querySelectorAll('#p1-drop .tab-item, #p1-drop .pane').forEach(x => x.classList.remove('active'));
+        el.classList.add('active'); document.getElementById('p1-pane-'+t).classList.add('active');
+    }
+    const initP1 = () => {
+        const gd = document.getElementById('p1-grid-d'); for(let i=1; i<=31; i++) { let c = document.createElement('div'); c.className='cell'; c.innerText=i; c.onclick = () => { s1.d=i; updateP1(); tabP1('m', document.getElementById('p1-tbtn-m')); }; gd.appendChild(c); }
+        const gm = document.getElementById('p1-grid-m'); months.forEach((m, i) => { let c = document.createElement('div'); c.className='cell'; c.innerText=m; c.onclick = () => { s1.m=i+1; updateP1(); tabP1('y', document.getElementById('p1-tbtn-y')); }; gm.appendChild(c); });
+        const gy = document.getElementById('p1-grid-y'); for(let y=2026; y>=1930; y--) { let c = document.createElement('div'); c.className='cell'; c.innerText=y; c.onclick = () => { s1.y=y; updateP1(); if(s1.d && s1.m) closeAll(); }; gy.appendChild(c); }
+    };
+    function updateP1() { 
+        document.getElementById('p1-display').innerText = `${s1.d?.toString().padStart(2,'0')||'--'}.${s1.m?.toString().padStart(2,'0')||'--'}.${s1.y||'----'}`; 
+        if(s1.d) document.getElementById('p1-t-d').innerText = s1.d;
+        if(s1.m) document.getElementById('p1-t-m').innerText = monthsShort[s1.m-1];
+        if(s1.y) document.getElementById('p1-t-y').innerText = s1.y;
+    }
+    initP1();
+
+    // --- PICKER 2 ---
+    let cur2 = new Date(2026, 2, 8), s2d = 8;
+    function tabP2(t, el) { 
+        document.querySelectorAll('#p2-drop .tab-item, #p2-drop .pane').forEach(x => x.classList.remove('active'));
+        el.classList.add('active'); document.getElementById('p2-pane-'+t).classList.add('active');
+        if(t==='my') renderP2Months(); else renderP2();
+    }
+    function moveP2(n, e) { e.stopPropagation(); let temp = new Date(cur2.getFullYear(), cur2.getMonth() + n, 1); if (temp > NOW || temp < new Date(2025, 2, 1)) return; cur2 = temp; renderP2(); if (document.getElementById('p2-pane-my').classList.contains('active')) renderP2Months(); }
+    function renderP2() {
+        const g = document.getElementById('p2-grid-d'); g.innerHTML = '';
+        let dim = new Date(cur2.getFullYear(), cur2.getMonth()+1, 0).getDate(); if (s2d > dim) s2d = dim;
+        const mDisp = (cur2.getMonth()+1).toString().padStart(2,'0');
+        document.getElementById('p2-t-my').innerText = `${mDisp}.${cur2.getFullYear()}`;
+        document.getElementById('p2-display').innerText = `${s2d.toString().padStart(2,'0')} . ${mDisp} . ${cur2.getFullYear()}`;
+        document.getElementById('p2-t-d').innerText = s2d.toString().padStart(2,'0');
+        let f = new Date(cur2.getFullYear(), cur2.getMonth(), 1).getDay() || 7; for(let i=1; i<f; i++) g.appendChild(document.createElement('div'));
+        for(let d=1; d<=dim; d++) { let c = document.createElement('div'); c.className='cell'; c.innerText=d; let dC = new Date(cur2.getFullYear(), cur2.getMonth(), d); if(dC > NOW || dC < MIN_DATE) c.classList.add('disabled'); if(d === s2d) c.classList.add('selected'); c.onclick = (e) => { e.stopPropagation(); s2d = d; renderP2(); }; g.appendChild(c); }
+    }
+    function renderP2Months() {
+        const g = document.getElementById('p2-grid-m'); g.innerHTML = '';
+        [2026, 2025].forEach(y => {
+            let title = document.createElement('div'); title.className='year-title'; title.innerText = y; g.appendChild(title);
+            for(let i=11; i>=0; i--) { let mDate = new Date(y, i, 1); let c = document.createElement('div'); c.className='cell'; c.innerText = months[i]; if(mDate > NOW || (y === 2025 && i < 2)) c.classList.add('disabled'); if(y === cur2.getFullYear() && i === cur2.getMonth()) c.classList.add('selected'); c.onclick = (e) => { e.stopPropagation(); cur2 = new Date(y, i, 1); tabP2('d', document.getElementById('p2-tbtn-d')); }; g.appendChild(c); }
+        });
+    }
+
+    // --- PICKER 3 ---
+    let p3r = { start: null, end: null, mode: 'start' };
+    function switchP3(m) { p3r.mode = m; document.querySelectorAll('#p3-drop .tab-item').forEach(x => x.classList.remove('active')); document.getElementById('p3-btn-'+m.charAt(0)).classList.add('active'); renderP3(); }
+    function renderP3() {
+        const con = document.getElementById('p3-pane-p'); con.innerHTML = '';
+        [2026, 2025].forEach(y => {
+            for(let m = 11; m >= 0; m--) {
+                let md = new Date(y, m, 1); if (md > NOW || (y === 2025 && m < 2)) continue;
+                let title = document.createElement('div'); title.className='year-title'; title.innerText = months[m] + ' ' + y; con.appendChild(title);
+                let grid = document.createElement('div'); grid.className='grid'; grid.style.gridTemplateColumns='repeat(7, 1fr)';
+                let f = md.getDay() || 7; for(let i=1; i<f; i++) grid.appendChild(document.createElement('div'));
+                let dim = new Date(y, m+1, 0).getDate();
+                for(let d=1; d<=dim; d++) {
+                    let dt = new Date(y, m, d); let cell = document.createElement('div'); cell.className='cell'; cell.innerText = d;
+                    if (dt > NOW || dt < MIN_DATE) cell.classList.add('disabled');
+                    if(p3r.start && dt.getTime()===p3r.start.getTime()) cell.classList.add('selected');
+                    if(p3r.end && dt.getTime()===p3r.end.getTime()) cell.classList.add('selected');
+                    if(p3r.start && p3r.end && p3r.start < p3r.end && dt > p3r.start && dt < p3r.end) cell.classList.add('in-range');
+                    cell.onclick = (e) => { e.stopPropagation(); if(p3r.mode==='start') p3r.start = dt; else p3r.end = dt; updateP3UI(); renderP3(); };
+                    grid.appendChild(cell);
+                }
+                con.appendChild(grid);
+            }
+        });
+    }
+    function updateP3UI() {
+        const f = (d) => d ? `${d.getDate().toString().padStart(2,'0')}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getFullYear()}` : '--.--.----';
+        document.getElementById('p3-txt-s').innerText = f(p3r.start); document.getElementById('p3-txt-e').innerText = f(p3r.end);
+        document.getElementById('p3-display').innerText = (p3r.start && p3r.end) ? f(p3r.start)+' - '+f(p3r.end) : (p3r.start || p3r.end) ? f(p3r.start || p3r.end) : 'Выбрать период';
+    }
+</script>
+</body>
+</html>
